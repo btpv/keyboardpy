@@ -9,10 +9,10 @@ def close(self:com.device):
     self.send(com.device.MSG_TYPE_FN_RECV,0x00)
 keyboard = com.device(0x32ac, 0x0012,onClose=close,debug=debug)
 numpad = com.device(0x32ac, 0x0013,  onClose=close,debug=debug)
+backlight_path = Path("/sys/class/backlight/")
+backlightDevice = [x for x in backlight_path.iterdir() if x.is_dir()][0]
 def readScreenBrightness():
-    backlight_path = Path("/sys/class/backlight/")
-    device = [x for x in backlight_path.iterdir() if x.is_dir()][0]
-    return int((device / "brightness").read_text())*255//62194
+    return int((backlightDevice / "brightness").read_text())*255//62194
     
 lastBrightnessUpdate = time.time()
     
