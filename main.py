@@ -10,8 +10,9 @@ def close(self:com.device):
 keyboard = com.device(0x32ac, 0x0012,onClose=close,debug=debug)
 numpad = com.device(0x32ac, 0x0013,  onClose=close,debug=debug)
 def readScreenBrightness():
-    backlight_path = Path("/sys/class/backlight/amdgpu_bl2")
-    return int((backlight_path / "brightness").read_text())*255//62194
+    backlight_path = Path("/sys/class/backlight/")
+    device = [x for x in backlight_path.iterdir() if x.is_dir()][0]
+    return int((device / "brightness").read_text())*255//62194
     
 lastBrightnessUpdate = time.time()
     
