@@ -75,7 +75,8 @@ class device:
             except:
                 pass
             self.send(self.CM_CLOSE)
-            self.device.close()
+            if self.device:
+                self.device.close()
         except (hid.HIDException, IOError) as e:
             pass
 
@@ -107,6 +108,8 @@ class device:
         return False
 
     def read(self, size=32) -> bytes | None:
+        if not self.device: 
+            raise IOError("device is not open")
         response = self.device.read(size)
         if not response:
             return None
