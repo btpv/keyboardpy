@@ -1,0 +1,14 @@
+[Unit]
+Description=Keyboard Python Script
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /home/btpv/dev/keyboardpy/main.py
+WorkingDirectory=/home/btpv/dev/keyboardpy
+Restart=on-failure
+User=btpv
+Group=btpv
+
+[Install]
+WantedBy=default.target
