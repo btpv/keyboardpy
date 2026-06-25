@@ -6,7 +6,7 @@ from hid import HIDException
 import com
 debug = True
 def close(self:com.device):
-    self.send(com.device.MSG_TYPE_FN_RECV,0x00)
+    self.send(com.device.MSG_TYPE_FN,0x00)
 keyboard = com.device(0x32ac, 0x0012,onClose=close,debug=debug)
 numpad = com.device(0x32ac, 0x0013,  onClose=close,debug=debug)
 backlight_path = Path("/sys/class/backlight/")
@@ -15,6 +15,11 @@ def readScreenBrightness():
     return int((backlightDevice / "brightness").read_text())*255//62194
     
 lastBrightnessUpdate = time.time()
+    
+def handleNonRepeat(datatype,data):
+    match datatype:
+            case com.device.MSG_TYPE_CMD:
+                print(data[1::].decode())
     
 while True:
     try:
@@ -26,21 +31,18 @@ while True:
             keyboardData = keyboard.read()
             if numpadData:
                 datatype = numpadData[0]
-                match datatype:
-                    case com.device.MSG_TYPE_FN_SEND:
-                        keyboard.send(com.device.MSG_TYPE_FN_RECV,numpadData[1])
-                    case com.device.MSG_TYPE_DC_SEND:
-                        keyboard.send(com.device.MSG_TYPE_DC_RECV,numpadData[1])
-                    case com.device.MSG_TYPE_XM_SEND:
-                        keyboard.send(com.device.MSG_TYPE_XM_RECV,numpadData[1])
-                    case com.device.MSG_TYPE_CMD:
-                        print(numpadData[1::].decode())
+                if datatype >= com.device.MSG_REPEAT_START and datatype <= com.device.MSG_REPEAT_END:
+                    keyboard.send(datatype,numpadData[1::])
+                else:
+                    handleNonRepeat(datatype,numpadData)
             
             if keyboardData:
                 datatype = keyboardData[0]
-                match datatype:
-                    case com.device.MSG_TYPE_FN_SEND:
-                        numpad.send(com.device.MSG_TYPE_FN_RECV,keyboardData[1])
+                if datatype >= com.device.MSG_REPEAT_START and datatype <= com.device.MSG_REPEAT_END:
+                    numpad.send(datatype,keyboardData[1::])
+                else:
+                    handleNonRepeat(datatype,keyboardData)
+
             if time.time()-lastBrightnessUpdate > 1:
                 print("updating brightness")
                 lastBrightnessUpdate = time.time()

@@ -14,16 +14,14 @@ report_length = 32
 
 
 class device:
-    CM_PING = 0x02
-    CM_OPEN = 0x03
-    CM_CLOSE = 0x04
-    CM_ACK = 0x05
-    MSG_TYPE_FN_SEND = 0x10
-    MSG_TYPE_FN_RECV = 0x11
-    MSG_TYPE_DC_SEND = 0x12
-    MSG_TYPE_DC_RECV = 0x13
-    MSG_TYPE_XM_SEND = 0x14
-    MSG_TYPE_XM_RECV = 0x15
+    CM_PING = 0x00
+    CM_OPEN = 0x01
+    CM_CLOSE = 0x02
+    CM_ACK = 0x03
+    MSG_REPEAT_START = 0x10
+    MSG_TYPE_FN = 0x10
+    MSG_TYPE_EFFECT = 0x11
+    MSG_REPEAT_END = 0x19
     MSG_TYPE_CMD = 0x20
     MSG_TYPE_SET_BRIGHTNESS = 0x30
 
@@ -83,6 +81,8 @@ class device:
     def send(self, type, data=[0x00]):
         if isinstance(data, int):
             data = [data]
+        if isinstance(data, bytes):
+            data = list(data)
         elif not isinstance(data, list):
             raise TypeError("data must be an int or a list of ints")
         if self.device is None:
