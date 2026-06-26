@@ -11,6 +11,8 @@ keyboard = com.device(0x32ac, 0x0012,onClose=close,debug=debug)
 numpad = com.device(0x32ac, 0x0013,  onClose=close,debug=debug)
 backlight_path = Path("/sys/class/backlight/")
 backlightDevice = [x for x in backlight_path.iterdir() if x.is_dir()][0]
+lastBrightness = None
+
 def readScreenBrightness():
     return int((backlightDevice / "brightness").read_text())*255//62194
     
@@ -20,7 +22,6 @@ def handleNonRepeat(datatype,data):
     match datatype:
             case com.device.MSG_TYPE_CMD:
                 print(data[1::].decode())
-    
 while True:
     try:
         print("\033[32mConnecting...\033[0m")
@@ -43,13 +44,14 @@ while True:
                 else:
                     handleNonRepeat(datatype,keyboardData)
 
-            if time.time()-lastBrightnessUpdate > 1:
+            brightness = readScreenBrightness()
+            if brightness != lastBrightness or time.time()-lastBrightnessUpdate > 100:
                 print("updating brightness")
                 lastBrightnessUpdate = time.time()
-                brightness = readScreenBrightness()
                 print(f"brightness: {brightness}")
                 keyboard.send(com.device.MSG_TYPE_SET_BRIGHTNESS,brightness)
                 numpad.send(com.device.MSG_TYPE_SET_BRIGHTNESS,brightness)
+                lastBrightness = brightness
             time.sleep(0.01)
     except (HIDException, IOError) as e:
         print("\033[31mNot connected",e,"\033[0m")
@@ -62,4 +64,3 @@ while True:
         keyboard.close()
         numpad.close()
         exit(0)
-        
