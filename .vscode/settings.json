@@ -7,10 +7,11 @@
     "python.analysis.extraPaths": [
         "",
         "/home/btpv/.vscode/extensions/joedevivo.vscode-circuitpython-0.2.0-linux-x64/stubs",
-        "/home/btpv/.config/Code/User/globalStorage/joedevivo.vscode-circuitpython/bundle/20260620/adafruit-circuitpython-bundle-py-20260620/lib"
+        "/home/btpv/.config/Code/User/globalStorage/joedevivo.vscode-circuitpython/bundle/20260701/adafruit-circuitpython-bundle-py-20260701/lib"
     ],
     "circuitpython.board.version": null,
     "cSpell.words": [
+        "macropad",
         "numpad"
     ]
 }

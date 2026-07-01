@@ -5,9 +5,10 @@ import hid
 reset = "\033[0m"
 receive = "\033[95m"
 send = "\033[96m"
-macro = "\033[91m"
-keyboard = "\033[93m"
-
+deviceColors = {
+    0x0012: "\033[93m", #keyboard
+    0x0013: "\033[91m", #macropad
+}
 usage_page = 0xFF60
 usage = 0x61
 report_length = 32
@@ -39,7 +40,11 @@ class device:
         self.path = self.getInterface()
         self.device = None  
         self.name = "Unknown"
-
+    @property
+    def deviceColor(self):
+        return deviceColors[self.pid]
+    
+    
     def getInterface(self) -> str | None:
         device_interfaces = hid.enumerate(self.vid, self.pid)
         raw_hid_interfaces = [i for i in device_interfaces if i['usage_page'] == usage_page and i['usage'] == usage]
@@ -77,7 +82,14 @@ class device:
                 self.device.close()
         except (hid.HIDException, IOError) as e:
             pass
-
+    def reOpenIfNeeded(self):
+        if self.device is None:
+            self.open()
+            return True
+        if not self.send(self.CM_PING):
+            self.open()
+            return True
+        return False
     def send(self, type, data=[0x00]):
         if isinstance(data, int):
             data = [data]
@@ -91,7 +103,8 @@ class device:
         msg = bytes(msg[:32] + [0x00] * (32 - len(msg)))
         if self.debug:
             print(
-                macro if "macro" in self.name.lower() else keyboard,
+                time.strftime("%H:%M:%S", time.localtime()),
+                self.deviceColor,
                 self.name.ljust(35),
                 send + "s" + reset,
                 self.asText(msg).ljust(25),
@@ -115,7 +128,8 @@ class device:
             return None
         if self.debug:
             print(
-                macro if "macro" in self.name.lower() else keyboard,
+                time.strftime("%H:%M:%S", time.localtime()),
+                self.deviceColor,
                 self.name.ljust(35),
                 receive + "r" + reset,
                 self.asText(response).ljust(25),
