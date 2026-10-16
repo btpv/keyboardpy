@@ -1,0 +1,6 @@
+[Unit]
+Description=Fix inconsistent NumLock LED state
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/fix-numlock

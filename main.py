@@ -15,19 +15,33 @@ def close(self: com.device):
 
 keyboard = com.device(0x32AC, 0x0012, onClose=close, debug=debug)
 macropad = com.device(0x32AC, 0x0013, onClose=close, debug=debug)
-backlight_path = Path("/sys/class/backlight/")
-while [x for x in backlight_path.iterdir() if x.is_dir()].__len__() == 0:
+backlightPath = Path("/sys/class/backlight/")
+while [x for x in backlightPath.iterdir() if x.is_dir()].__len__() == 0:
     time.sleep(0.1)
-backlightDevice = [x for x in backlight_path.iterdir() if x.is_dir()][0]
+backlightDevice = [x for x in backlightPath.iterdir() if x.is_dir()][0]
 lastBrightness = None
 command = ""
 
 
 def readScreenBrightness():
-    return int((backlightDevice / "brightness").read_text()) * 255 // 62194
+    brightness = int((backlightDevice / "brightness").read_text())
+    maxBrightness = int((backlightDevice / "max_brightness").read_text())
+    return brightness * 255 // maxBrightness
+
+def fixNumlockState():
+    numlockLedPaths = Path("/sys/class/leds").glob("*::numlock/brightness")
+    numlockStateList = [d.read_text().strip("\n")=='1' for d in numlockLedPaths]
+    anyOn,allOn = any(numlockStateList),all(numlockStateList)
+    if anyOn != allOn:
+        print(f"Fixing numlock state: {anyOn} != {allOn}")
+        for d in Path("/sys/class/leds").glob("*::numlock/brightness"):
+            d.write_text("1\n" if anyOn else "0\n")
+        
+print(fixNumlockState())
 
 
 lastKeepAlive = time.time()
+
 
 def handleNonRepeat(datatype, data):
     global command
@@ -79,9 +93,13 @@ while True:
                 lastBrightness = brightness
             if time.time() - lastKeepAlive > 1000:
                 if macropad.reOpenIfNeeded():
-                    print(f"\033[33m [WARNING] {macropad.deviceColor} {macropad.device.product if macropad.device != None else "macropad"} reconnected")
+                    print(
+                        f"\033[33m [WARNING] {macropad.deviceColor} {macropad.device.product if macropad.device != None else "macropad"} reconnected"
+                    )
                 if keyboard.reOpenIfNeeded():
-                    print(f"\033[33m [WARNING] {keyboard.deviceColor} {keyboard.device.product if keyboard.device != None else "keyboard"} reconnected")
+                    print(
+                        f"\033[33m [WARNING] {keyboard.deviceColor} {keyboard.device.product if keyboard.device != None else "keyboard"} reconnected"
+                    )
                 lastKeepAlive = time.time()
             time.sleep(0.01)
     except (HIDException, IOError) as e:

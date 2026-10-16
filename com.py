@@ -22,6 +22,7 @@ class device:
     MSG_REPEAT_START = 0x10
     MSG_TYPE_FN = 0x10
     MSG_TYPE_EFFECT = 0x11
+    MSG_TYPE_NUMLOCK = 0x12
     MSG_REPEAT_END = 0x19
     MSG_TYPE_CMD = 0x20
     MSG_TYPE_SET_BRIGHTNESS = 0x30
@@ -54,9 +55,9 @@ class device:
 
         path = raw_hid_interfaces[0]['path']
         interface = hid.Device(path=path)
-
-        print(f"Manufacturer: {interface.manufacturer}")
-        print(f"Product: {interface.product}")
+        if self.debug:
+            print(f"Manufacturer: {interface.manufacturer}")
+            print(f"Product: {interface.product}")
         interface.close()
         return path
 
