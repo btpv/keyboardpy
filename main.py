@@ -28,18 +28,6 @@ def readScreenBrightness():
     maxBrightness = int((backlightDevice / "max_brightness").read_text())
     return brightness * 255 // maxBrightness
 
-def fixNumlockState():
-    numlockLedPaths = Path("/sys/class/leds").glob("*::numlock/brightness")
-    numlockStateList = [d.read_text().strip("\n")=='1' for d in numlockLedPaths]
-    anyOn,allOn = any(numlockStateList),all(numlockStateList)
-    if anyOn != allOn:
-        print(f"Fixing numlock state: {anyOn} != {allOn}")
-        for d in Path("/sys/class/leds").glob("*::numlock/brightness"):
-            d.write_text("1\n" if anyOn else "0\n")
-        
-print(fixNumlockState())
-
-
 lastKeepAlive = time.time()
 
 
